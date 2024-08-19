@@ -1,7 +1,7 @@
 import { Link, useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { getPosts } from "~/models/post.server";
-import { Tooltip, Button } from "flowbite-react";
+import { Button } from "flowbite-react";
 
 export const loader = async () => {
   return json({ posts: await getPosts() });
@@ -19,11 +19,12 @@ export default function Posts() {
         </p>
         <div className="flex flex-col mt-6 w-full md:w-[800px]">
           {posts.map((post) => (
-            <Link style={{ width: "100%" }} to={`/posts/${post.slug}`}>
-              <div
-                className="flex flex-col items-center justify-center gap-2 py-10 border-b-solid border-b-[0.5px] border-b-gray-300 min-w-full md:min-w-[600px] hover:bg-gray-100"
-                key={post.slug}
-              >
+            <Link
+              key={post.slug}
+              style={{ width: "100%" }}
+              to={`/posts/${post.slug}`}
+            >
+              <div className="flex flex-col items-center justify-center gap-2 py-10 border-b-solid border-b-[0.5px] border-b-gray-300 min-w-full md:min-w-[600px] hover:bg-gray-100">
                 <p className="text-[24px] font-semibold">{post.title}</p>
                 <p>
                   {post.slug} -{" "}

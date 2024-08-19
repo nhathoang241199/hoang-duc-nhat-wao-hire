@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Post } from "@prisma/client";
 import { ActionFunctionArgs, json } from "@remix-run/node";
 import {
@@ -78,47 +79,60 @@ const inputClassName =
   "w-full rounded border border-gray-500 px-2 py-1 text-lg";
 
 export default function AdminPosts() {
-  const { posts } = useLoaderData<typeof loader>();
   const [openModal, setOpenModal] = useState(false);
-  const errors = useActionData<typeof action>();
-  const navigation = useNavigation();
-  const isCreating = Boolean(navigation.state === "submitting");
-  const actionData = useActionData();
   const [selectedPost, setSelectedPost] = useState<Post | undefined>();
-  const [action, setAction] = useState<EAction | undefined>();
+  const [actionType, setActionType] = useState<EAction | undefined>();
   const [localErrors, setLocalErrors] = useState<typeof actionData | null>(
     null
   );
-
+  const { posts } = useLoaderData<typeof loader>();
+  const errors = useActionData<typeof action>();
   const submit = useSubmit();
+  const navigation = useNavigation();
+  const actionData = useActionData();
+  const isCreating = Boolean(navigation.state === "submitting");
 
+  // call submit create a new post
   const handleFormSubmit = async () => {
-    setAction(EAction.create);
+    setActionType(EAction.create);
     const form = document.getElementById("post-form");
     if (form) {
       submit(form as any);
     }
   };
+
+  // select post to edit
   const handleSelectPost = (post: any) => {
     setSelectedPost(post);
   };
 
+  // call submit delete post
   const handleDeletePost = () => {
-    setAction(EAction.delete);
+    setActionType(EAction.delete);
     const form = document.getElementById("delete-post");
     if (form) {
       submit(form as any);
     }
   };
 
+  // call submit edit post
   const handleEditPost = () => {
-    setAction(EAction.edit);
+    setActionType(EAction.edit);
     const form = document.getElementById("edit-post-form");
     if (form) {
       submit(form as any);
     }
   };
 
+  // handle close modal
+  const handleOnCloseModal = () => {
+    setOpenModal(false);
+    setSelectedPost(undefined);
+    setLocalErrors(null);
+    setActionType(undefined);
+  };
+
+  // close modal after submit
   useEffect(() => {
     if ((errors as any)?.updatedAt) {
       handleOnCloseModal();
@@ -126,13 +140,6 @@ export default function AdminPosts() {
       setLocalErrors(errors);
     }
   }, [actionData, errors]);
-
-  const handleOnCloseModal = () => {
-    setOpenModal(false);
-    setSelectedPost(undefined);
-    setLocalErrors(null);
-    setAction(undefined);
-  };
 
   return (
     <div className="w-full flex justify-center  min-h-[100vh] ">
@@ -145,6 +152,14 @@ export default function AdminPosts() {
           {posts.map((post) => (
             <div
               onClick={() => handleSelectPost(post)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  handleSelectPost(post);
+                  e.preventDefault();
+                }
+              }}
+              tabIndex={0}
+              role="button"
               className="flex cursor-pointer flex-col items-center justify-center gap-2 py-10 border-b-solid border-b-[0.5px] border-b-gray-300 min-w-full md:min-w-[600px] hover:bg-gray-100"
               key={post.slug}
             >
@@ -212,7 +227,7 @@ export default function AdminPosts() {
               type="button"
               onClick={handleFormSubmit}
             >
-              {isCreating && action === EAction.create ? (
+              {isCreating && actionType === EAction.create ? (
                 <div role="status">
                   <svg
                     aria-hidden="true"
@@ -303,7 +318,7 @@ export default function AdminPosts() {
                 type="button"
                 onClick={handleDeletePost}
               >
-                {isCreating && action === EAction.delete ? (
+                {isCreating && actionType === EAction.delete ? (
                   <div role="status">
                     <svg
                       aria-hidden="true"
@@ -329,7 +344,7 @@ export default function AdminPosts() {
               </Button>
             </Form>
             <Button className="w-[80px]" type="button" onClick={handleEditPost}>
-              {isCreating && action === EAction.edit ? (
+              {isCreating && actionType === EAction.edit ? (
                 <div role="status">
                   <svg
                     aria-hidden="true"
